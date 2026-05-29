@@ -1,0 +1,160 @@
+{
+  "project_name": "F&B HPP Calculator",
+  "theme": "Light",
+  "archetype": "Archetype 1: Organic & Earthy (Modified for Financial Utility)",
+  "design_philosophy": "A clean, modern mobile-first web app mimicking a native Android dashboard. Prioritizes data legibility with large typography for numbers, grounded in warm earthy F&B tones (Coffee and Maroon) against crisp white backgrounds. Functional, accessible, and appetizing.",
+  "colors": {
+    "background": {
+      "default": "#FFFFFF",
+      "muted": "#F9F8F6"
+    },
+    "primary": {
+      "DEFAULT": "#800000",
+      "hover": "#660000",
+      "foreground": "#FFFFFF"
+    },
+    "secondary": {
+      "DEFAULT": "#6F4E37",
+      "hover": "#5A3E2B",
+      "foreground": "#FFFFFF"
+    },
+    "accent": {
+      "DEFAULT": "#D4A373",
+      "foreground": "#1A120B"
+    },
+    "status": {
+      "success": "#22C55E",
+      "warning": "#EAB308",
+      "danger": "#EF4444",
+      "good_margin": "#dcfce7",
+      "good_margin_text": "#166534",
+      "bad_margin": "#fee2e2",
+      "bad_margin_text": "#991b1b"
+    },
+    "text": {
+      "primary": "#1A120B",
+      "secondary": "#5C534B",
+      "muted": "#A39A92"
+    },
+    "border": "#E5E2DC"
+  },
+  "typography": {
+    "font_family": {
+      "headings": "Outfit, sans-serif",
+      "body": "Manrope, sans-serif",
+      "numbers": "Manrope, sans-serif"
+    },
+    "scale": {
+      "h1": "text-3xl tracking-tight font-bold text-primary",
+      "h2": "text-2xl tracking-tight font-semibold",
+      "h3": "text-xl font-medium",
+      "h4": "text-lg font-medium",
+      "body_large": "text-base",
+      "body": "text-sm",
+      "small": "text-xs font-medium tracking-wide",
+      "metric": "text-3xl sm:text-4xl font-black tracking-tighter"
+    },
+    "rules": [
+      "Use 'Outfit' for all screen titles and bottom navigation active states.",
+      "Use 'Manrope' for data tables, lists, and form inputs to ensure crisp number rendering.",
+      "Currency (IDR) and percentages must use font-medium or font-semibold for emphasis."
+    ]
+  },
+  "spacing_and_layout": {
+    "philosophy": "Mobile-first responsive layout with generous padding. Mimics an Android app with a fixed bottom navigation bar.",
+    "container": "w-full max-w-md mx-auto min-h-screen bg-white relative pb-20 shadow-xl sm:border sm:border-border",
+    "padding": {
+      "screen": "p-4 sm:p-6",
+      "card": "p-4",
+      "item": "py-3 px-4"
+    },
+    "radius": {
+      "card": "rounded-2xl",
+      "button": "rounded-xl",
+      "input": "rounded-lg",
+      "fab": "rounded-full"
+    },
+    "shadows": {
+      "card": "shadow-[0_2px_10px_rgba(26,18,11,0.06)]",
+      "fab": "shadow-[0_8px_20px_rgba(128,0,0,0.3)]",
+      "header": "shadow-sm"
+    }
+  },
+  "components": {
+    "bottom_navigation": {
+      "style": "Fixed to bottom, background white, border-t border-border/50, h-16.",
+      "icons": "Use lucide-react. Active: Maroon (#800000), Inactive: Muted Text (#A39A92).",
+      "tabs": ["Dashboard", "Bahan", "Produk", "Resep", "Simulasi", "Laporan"]
+    },
+    "floating_action_button": {
+      "style": "Fixed position bottom-24 right-4 or right-6, w-14 h-14 bg-primary text-white rounded-full flex items-center justify-center shadow-[0_8px_20px_rgba(128,0,0,0.3)] transition-transform hover:scale-105 active:scale-95 z-40."
+    },
+    "kpi_cards": {
+      "style": "Flat background (white or muted #F9F8F6), 1px border (#E5E2DC), subtle shadow. Numbers must be large (text-3xl)."
+    },
+    "forms": {
+      "style": "Simple, clean inputs. Label above input, text-sm font-medium text-text-secondary. Inputs have 1px border, rounded-lg, focus:ring-2 focus:ring-primary/20 focus:border-primary."
+    },
+    "profitability_table": {
+      "style": "List view for mobile rather than strict tables. Green/Yellow/Red status badges for Margin %.",
+      "badges": {
+        "green": "bg-green-100 text-green-700 font-bold px-2 py-1 rounded",
+        "yellow": "bg-yellow-100 text-yellow-700 font-bold px-2 py-1 rounded",
+        "red": "bg-red-100 text-red-700 font-bold px-2 py-1 rounded"
+      }
+    },
+    "charts": {
+      "library": "Recharts or Shadcn Charts",
+      "colors": ["#800000", "#6F4E37", "#D4A373", "#E5E2DC"]
+    },
+    "header": {
+      "style": "Sticky top-0 z-50 bg-white/90 backdrop-blur-xl border-b border-border/50 px-4 h-14 flex items-center justify-between."
+    }
+  },
+  "interactive_rules": {
+    "hover_states": "Buttons must darken on hover (bg-primary to bg-[#660000]).",
+    "active_states": "Cards and list items should have active:scale-[0.98] to mimic mobile tap feeling.",
+    "testing": "All interactive elements MUST include a data-testid attribute in kebab-case."
+  },
+  "media": {
+    "icons": "lucide-react",
+    "images": {
+      "kopi_susu_aren": {
+        "url": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1OTN8MHwxfHNlYXJjaHwxfHxpY2VkJTIwY29mZmVlJTIwbWlsa3xlbnwwfHx8fDE3ODAwNjgwODl8MA&ixlib=rb-4.1.0&q=85",
+        "category": "sample_product",
+        "description": "Iced Coffee Milk / Kopi Susu Aren"
+      },
+      "matcha_latte": {
+        "url": "https://images.unsplash.com/photo-1515823064-d6e0c04616a7?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzMjh8MHwxfHNlYXJjaHwxfHxtYXRjaGElMjBsYXR0ZXxlbnwwfHx8fDE3ODAwNjgwODh8MA&ixlib=rb-4.1.0&q=85",
+        "category": "sample_product",
+        "description": "Matcha Latte"
+      },
+      "burger_camat": {
+        "url": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1NzV8MHwxfHNlYXJjaHwxfHxidXJnZXJ8ZW58MHx8fHwxNzgwMDY4MDg4fDA&ixlib=rb-4.1.0&q=85",
+        "category": "sample_product",
+        "description": "Burger Camat"
+      },
+      "nasi_goreng": {
+        "url": "https://images.unsplash.com/photo-1603133872878-684f208fb84b?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NTYxOTF8MHwxfHNlYXJjaHwxfHxmcmllZCUyMHJpY2V8ZW58MHx8fHwxNzgwMDY4MDg4fDA&ixlib=rb-4.1.0&q=85",
+        "category": "sample_product",
+        "description": "Nasi Goreng"
+      },
+      "user_avatar": {
+        "url": "https://images.pexels.com/photos/36729739/pexels-photo-36729739.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+        "category": "ui_element",
+        "description": "Cafe Owner Avatar for Header"
+      }
+    }
+  },
+  "instructions_to_main_agent": [
+    "Develop a Mobile-First Web Application mimicking a native Expo Android app. Limit main container width to 'max-w-md mx-auto' with a border to simulate a mobile screen on desktop monitors.",
+    "Implement a fixed bottom navigation bar with 6 tabs. Hide this bar on scroll down or ensure z-index is correct. Use Lucide icons.",
+    "Use a Floating Action Button (FAB) on CRUD screens (Bahan, Produk, Resep).",
+    "Format all currency as IDR (Rp 15.000). Format all percentages explicitly.",
+    "Profitability tables/lists must use explicit badge colors for margin statuses (e.g., Green for >50%, Yellow for 30-50%, Red for <30%).",
+    "Mock the data for multi-outlet (FORU Huis, FORU The Mozz, FORU Bazar) as a Select dropdown in the sticky header.",
+    "Apply `data-testid` attributes to all buttons, navigation tabs, and form elements for e2e testing.",
+    "Do NOT use HTML native date/select. Use Shadcn components heavily customized to look like modern Android/Material UI components.",
+    "Ensure the primary maroon accent color (#800000) is used distinctively on FABs and active navigation icons, maintaining a clean white background."
+  ]
+}
