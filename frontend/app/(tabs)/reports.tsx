@@ -68,7 +68,13 @@ export default function ReportsScreen() {
   };
 
   const importIngredientsCSV = async () => {
-    const text = await Clipboard.getStringAsync();
+    let text = "";
+    try {
+      text = await Clipboard.getStringAsync();
+    } catch {
+      Alert.alert("Izin Clipboard Ditolak", "Browser menolak akses clipboard. Buka di aplikasi mobile, atau izinkan akses clipboard di pengaturan browser.");
+      return;
+    }
     if (!text || !text.includes(",")) {
       Alert.alert("Clipboard kosong", "Salin CSV bahan terlebih dahulu, lalu tekan tombol ini.\n\nFormat: Nama,Kategori,Supplier,SatuanBeli,JumlahBeli,HargaBeli,SatuanPakai,Konversi");
       return;
