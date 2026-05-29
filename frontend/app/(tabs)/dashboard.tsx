@@ -1,7 +1,7 @@
 import { View, Text, ScrollView, StyleSheet, RefreshControl, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect, useRouter } from "expo-router";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Header } from "@/src/components/Header";
 import { KpiCard, Card, Section } from "@/src/components/ui";
 import { COLORS, SPACE } from "@/src/theme";
@@ -36,6 +36,7 @@ export default function Dashboard() {
   }, []);
 
   useFocusEffect(useCallback(() => { load(); }, [load]));
+  useEffect(() => { load(); }, [load]);
 
   const handleOutlet = async (o: Outlet) => {
     await repo.setActiveOutlet(o);
