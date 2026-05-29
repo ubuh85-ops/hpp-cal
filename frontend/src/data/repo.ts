@@ -7,7 +7,7 @@ const K_PROD = "hpp.products";
 const K_REC = "hpp.recipes";
 const K_OH = "hpp.overheads";
 const K_OUTLET = "hpp.activeOutlet";
-const K_SEEDED = "hpp.seeded.v1";
+const K_SEEDED = "hpp.seeded.v2";
 
 async function readJSON<T>(key: string, fallback: T): Promise<T> {
   const raw = (await storage.getItem(key, "")) as string | null;

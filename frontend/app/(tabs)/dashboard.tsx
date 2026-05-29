@@ -6,7 +6,7 @@ import { Header } from "@/src/components/Header";
 import { KpiCard, Card, Section } from "@/src/components/ui";
 import { COLORS, SPACE } from "@/src/theme";
 import { repo } from "@/src/data/repo";
-import { Ingredient, Outlet, Overhead, Product, Recipe } from "@/src/data/types";
+import { Ingredient, isAvailableAt, Outlet, Overhead, Product, Recipe } from "@/src/data/types";
 import { computeProductMetrics, ProductMetrics } from "@/src/data/compute";
 import { formatIDR, formatPct } from "@/src/data/format";
 import { StatusBadge } from "@/src/components/ui";
@@ -43,9 +43,9 @@ export default function Dashboard() {
     setOverhead(await repo.getOverhead(o));
   };
 
-  const outletProducts = products.filter((p) => p.outlet === outlet);
+  const outletProducts = products.filter((p) => isAvailableAt(p, outlet));
   const metrics: ProductMetrics[] = outletProducts.map((p) =>
-    computeProductMetrics(p, recipes.find((r) => r.productId === p.id), ingredients, overhead),
+    computeProductMetrics(p, outlet, recipes.find((r) => r.productId === p.id), ingredients, overhead),
   );
 
   const totalProducts = outletProducts.length;
@@ -78,7 +78,7 @@ export default function Dashboard() {
                 <Text style={styles.cardLabel}>🏆 Margin Tertinggi</Text>
                 <Text style={styles.cardName}>{highest.product.nama}</Text>
                 <View style={styles.cardRow}>
-                  <Text style={styles.cardMeta}>Harga {formatIDR(highest.product.hargaJual)}</Text>
+                  <Text style={styles.cardMeta}>Harga {formatIDR(highest.pricing.hargaJual)}</Text>
                   <StatusBadge margin={highest.margin} />
                 </View>
               </Card>
@@ -88,7 +88,7 @@ export default function Dashboard() {
                 <Text style={styles.cardLabel}>⚠️ Margin Terendah</Text>
                 <Text style={styles.cardName}>{lowest.product.nama}</Text>
                 <View style={styles.cardRow}>
-                  <Text style={styles.cardMeta}>Harga {formatIDR(lowest.product.hargaJual)}</Text>
+                  <Text style={styles.cardMeta}>Harga {formatIDR(lowest.pricing.hargaJual)}</Text>
                   <StatusBadge margin={lowest.margin} />
                 </View>
               </Card>

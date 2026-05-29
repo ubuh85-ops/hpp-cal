@@ -6,14 +6,15 @@ import { Ionicons } from "@expo/vector-icons";
 import { PrimaryButton, Row, Section, Card } from "@/src/components/ui";
 import { COLORS, RADIUS, SPACE } from "@/src/theme";
 import { repo } from "@/src/data/repo";
-import { Ingredient, Outlet, Overhead, Product, Recipe, RecipeItem } from "@/src/data/types";
-import { computeProductMetrics, costPerUnit } from "@/src/data/compute";
+import { Ingredient, isAvailableAt, Outlet, Overhead, Product, Recipe, RecipeItem } from "@/src/data/types";
+import { computeProductMetrics, costPerUnit, overheadPerProduct, recipeHPP } from "@/src/data/compute";
 import { formatIDR, formatPct, parseNumber } from "@/src/data/format";
 
 export default function RecipeBuilder() {
   const { productId } = useLocalSearchParams<{ productId: string }>();
   const router = useRouter();
 
+  const [outlet, setOutlet] = useState<Outlet>("FORU Huis");
   const [product, setProduct] = useState<Product | null>(null);
   const [ingredients, setIngredients] = useState<Ingredient[]>([]);
   const [items, setItems] = useState<RecipeItem[]>([]);
@@ -22,24 +23,26 @@ export default function RecipeBuilder() {
 
   useEffect(() => {
     (async () => {
+      const o = await repo.getActiveOutlet();
+      setOutlet(o);
       const [prods, ings, recs] = await Promise.all([repo.listProducts(), repo.listIngredients(), repo.listRecipes()]);
       const p = prods.find((x) => x.id === productId) || null;
       setProduct(p);
       setIngredients(ings);
       const rec = recs.find((r) => r.productId === productId);
       setItems(rec?.items || []);
-      if (p) setOverhead(await repo.getOverhead(p.outlet));
+      setOverhead(await repo.getOverhead(o));
     })();
   }, [productId]);
 
   const ingredientMap = useMemo(() => new Map(ingredients.map((i) => [i.id, i])), [ingredients]);
   const recipe: Recipe = { productId: productId as string, items };
-  const metrics = product ? computeProductMetrics(product, recipe, ingredients, overhead) : null;
+  const metrics = product ? computeProductMetrics(product, outlet, recipe, ingredients, overhead) : null;
+  const hppBahanLive = recipeHPP(recipe, ingredients);
+  const ohLive = overheadPerProduct(overhead);
 
-  const outletIngredients = useMemo(
-    () => ingredients.filter((i) => !product || i.outlet === product.outlet),
-    [ingredients, product],
-  );
+  // Show all ingredients (recipe is shared across outlets)
+  const pickerIngredients = ingredients;
 
   const addIngredient = (ing: Ingredient) => {
     if (items.find((x) => x.ingredientId === ing.id)) return;
@@ -72,6 +75,8 @@ export default function RecipeBuilder() {
     );
   }
 
+  const available = isAvailableAt(product, outlet);
+
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
       <View style={styles.header}>
@@ -84,16 +89,22 @@ export default function RecipeBuilder() {
       <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={{ padding: SPACE.lg, paddingBottom: 120 }} keyboardShouldPersistTaps="handled">
           {metrics && (
-            <Section title="Ringkasan HPP">
+            <Section title={`Ringkasan HPP (${outlet})`}>
               <Card>
-                <Row label="HPP Bahan" value={formatIDR(metrics.finalHpp - (overhead ? (overhead.sewa + overhead.gaji + overhead.listrik + overhead.air + overhead.internet + overhead.marketing + overhead.lain) / Math.max(1, overhead.targetSalesPerMonth) : 0))} />
-                <Row label="Overhead per produk" value={formatIDR(metrics.finalHpp - items.reduce((s, it) => { const ing = ingredientMap.get(it.ingredientId); return ing ? s + costPerUnit(ing) * it.qty : s; }, 0))} />
+                <Row label="HPP Bahan" value={formatIDR(hppBahanLive)} />
+                <Row label="Overhead per produk" value={formatIDR(ohLive)} />
                 <View style={styles.divider} />
                 <Row label="Total HPP" value={formatIDR(metrics.finalHpp)} bold accent />
-                <Row label="Harga Jual" value={formatIDR(product.hargaJual)} />
-                <Row label="Food Cost" value={formatPct(metrics.foodCost)} />
-                <Row label="Profit Kotor" value={formatIDR(metrics.profit)} />
-                <Row label="Margin" value={formatPct(metrics.margin)} bold />
+                {available ? (
+                  <>
+                    <Row label="Harga Jual" value={formatIDR(metrics.pricing.hargaJual)} />
+                    <Row label="Food Cost" value={formatPct(metrics.foodCost)} />
+                    <Row label="Profit Kotor" value={formatIDR(metrics.profit)} />
+                    <Row label="Margin" value={formatPct(metrics.margin)} bold />
+                  </>
+                ) : (
+                  <Text style={styles.notAvail}>Belum tersedia di outlet ini. Atur harga di halaman produk.</Text>
+                )}
               </Card>
             </Section>
           )}
@@ -144,11 +155,11 @@ export default function RecipeBuilder() {
       <Modal visible={pickerOpen} transparent animationType="fade" onRequestClose={() => setPickerOpen(false)}>
         <TouchableOpacity activeOpacity={1} style={styles.backdrop} onPress={() => setPickerOpen(false)}>
           <View style={styles.sheet}>
-            <Text style={styles.sheetTitle}>Pilih Bahan ({product.outlet})</Text>
+            <Text style={styles.sheetTitle}>Pilih Bahan</Text>
             <FlatList
-              data={outletIngredients.filter((ing) => !items.find((it) => it.ingredientId === ing.id))}
+              data={pickerIngredients.filter((ing) => !items.find((it) => it.ingredientId === ing.id))}
               keyExtractor={(i) => i.id}
-              ListEmptyComponent={<Text style={{ color: COLORS.textMuted, textAlign: "center", paddingVertical: 20 }}>Semua bahan sudah ditambahkan, atau belum ada bahan untuk outlet ini.</Text>}
+              ListEmptyComponent={<Text style={{ color: COLORS.textMuted, textAlign: "center", paddingVertical: 20 }}>Semua bahan sudah ditambahkan, atau belum ada bahan tersedia.</Text>}
               renderItem={({ item }) => (
                 <TouchableOpacity testID={`pick-ing-${item.id}`} onPress={() => addIngredient(item)} style={styles.sheetItem}>
                   <View style={{ flex: 1 }}>
@@ -172,6 +183,7 @@ const styles = StyleSheet.create({
   iconBtn: { width: 40, height: 40, alignItems: "center", justifyContent: "center" },
   title: { fontSize: 16, fontWeight: "700", color: COLORS.textPrimary, flex: 1, textAlign: "center" },
   divider: { height: 1, backgroundColor: COLORS.border, marginVertical: 6 },
+  notAvail: { fontSize: 12, color: COLORS.textMuted, fontStyle: "italic", marginTop: 6 },
   addBtn: { flexDirection: "row", alignItems: "center", backgroundColor: COLORS.primary, borderRadius: 20, paddingHorizontal: 12, paddingVertical: 6 },
   addBtnText: { color: "#FFF", fontSize: 12, fontWeight: "700", marginLeft: 4 },
   itemCard: { flexDirection: "row", alignItems: "center", backgroundColor: COLORS.bg, borderWidth: 1, borderColor: COLORS.border, borderRadius: RADIUS.card, padding: SPACE.md, marginBottom: SPACE.sm },

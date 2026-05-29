@@ -1,8 +1,6 @@
-import { Ingredient, Overhead, Product, Recipe } from "./types";
+import { getPricing, Ingredient, Outlet, Overhead, Product, ProductOutletPricing, Recipe } from "./types";
 
 export function costPerUnit(ing: Ingredient): number {
-  // harga per satuan pakai
-  // = harga beli / (jumlah beli * nilai konversi)
   const denom = (ing.jumlahBeli || 0) * (ing.nilaiKonversi || 0);
   if (denom <= 0) return 0;
   return ing.hargaBeli / denom;
@@ -62,8 +60,11 @@ export function marginStatus(margin: number): "green" | "yellow" | "red" {
 
 export type ProductMetrics = {
   product: Product;
-  hpp: number;
+  pricing: ProductOutletPricing;
+  hppBahan: number;
+  overhead: number;
   finalHpp: number;
+  hpp: number; // alias for finalHpp (back-compat)
   foodCost: number;
   profit: number;
   margin: number;
@@ -72,22 +73,23 @@ export type ProductMetrics = {
 
 export function computeProductMetrics(
   product: Product,
+  outlet: Outlet,
   recipe: Recipe | undefined,
   ingredients: Ingredient[],
   overhead: Overhead | null,
 ): ProductMetrics {
-  const hpp = recipeHPP(recipe, ingredients);
+  const pricing = getPricing(product, outlet);
+  const hppBahan = recipeHPP(recipe, ingredients);
   const oh = overheadPerProduct(overhead);
-  const finalHpp = hpp + oh;
-  const fc = foodCostPct(finalHpp, product.hargaJual);
-  const profit = grossProfit(finalHpp, product.hargaJual);
-  const margin = marginPct(finalHpp, product.hargaJual);
-  // ideal price uses target food cost if set, otherwise target margin
+  const finalHpp = hppBahan + oh;
+  const fc = foodCostPct(finalHpp, pricing.hargaJual);
+  const profit = grossProfit(finalHpp, pricing.hargaJual);
+  const margin = marginPct(finalHpp, pricing.hargaJual);
   let ideal = 0;
-  if (product.targetFoodCost > 0) {
-    ideal = idealPriceByFoodCost(finalHpp, product.targetFoodCost);
-  } else if (product.targetMargin > 0) {
-    ideal = idealPriceByMargin(finalHpp, product.targetMargin);
+  if (pricing.targetFoodCost > 0) {
+    ideal = idealPriceByFoodCost(finalHpp, pricing.targetFoodCost);
+  } else if (pricing.targetMargin > 0) {
+    ideal = idealPriceByMargin(finalHpp, pricing.targetMargin);
   }
-  return { product, hpp: finalHpp, finalHpp, foodCost: fc, profit, margin, idealPrice: ideal };
+  return { product, pricing, hppBahan, overhead: oh, finalHpp, hpp: finalHpp, foodCost: fc, profit, margin, idealPrice: ideal };
 }

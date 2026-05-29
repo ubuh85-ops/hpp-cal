@@ -27,20 +27,21 @@ export default function RecipesScreen() {
 
   useFocusEffect(useCallback(() => { load(); }, [load]));
 
-  const filtered = products.filter((p) => p.outlet === outlet);
+  // Recipes are shared across outlets. Show ALL products here.
+  const list = products;
 
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
       <Header title="Resep / Recipe Builder" outlet={outlet} onChangeOutlet={async (o) => { await repo.setActiveOutlet(o); setOutlet(o); setOverhead(await repo.getOverhead(o)); }} />
       <FlatList
-        data={filtered}
+        data={list}
         keyExtractor={(p) => p.id}
         contentContainerStyle={{ padding: SPACE.lg, paddingBottom: 120 }}
         ItemSeparatorComponent={() => <View style={{ height: SPACE.sm }} />}
-        ListEmptyComponent={<Text style={styles.empty}>Belum ada produk untuk outlet ini. Tambah produk dulu di tab Produk.</Text>}
+        ListEmptyComponent={<Text style={styles.empty}>Belum ada produk. Tambahkan produk dulu.</Text>}
         renderItem={({ item }) => {
           const recipe = recipes.find((r) => r.productId === item.id);
-          const m = computeProductMetrics(item, recipe, ingredients, overhead);
+          const m = computeProductMetrics(item, outlet, recipe, ingredients, overhead);
           const itemCount = recipe?.items.length || 0;
           return (
             <TouchableOpacity testID={`recipe-item-${item.id}`} onPress={() => router.push(`/recipe/${item.id}`)} activeOpacity={0.8} style={styles.card}>

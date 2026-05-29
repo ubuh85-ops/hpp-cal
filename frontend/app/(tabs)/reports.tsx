@@ -7,7 +7,7 @@ import { Header } from "@/src/components/Header";
 import { Card, PrimaryButton, SecondaryButton, Section, StatusBadge } from "@/src/components/ui";
 import { COLORS, RADIUS, SPACE } from "@/src/theme";
 import { repo } from "@/src/data/repo";
-import { Ingredient, Outlet, Overhead, Product, Recipe } from "@/src/data/types";
+import { Ingredient, isAvailableAt, Outlet, Overhead, Product, Recipe } from "@/src/data/types";
 import { computeProductMetrics, ProductMetrics } from "@/src/data/compute";
 import { formatIDR, formatPct } from "@/src/data/format";
 
@@ -28,8 +28,8 @@ export default function ReportsScreen() {
   useFocusEffect(useCallback(() => { load(); }, [load]));
 
   const metrics: ProductMetrics[] = products
-    .filter((p) => p.outlet === outlet)
-    .map((p) => computeProductMetrics(p, recipes.find((r) => r.productId === p.id), ingredients, overhead))
+    .filter((p) => isAvailableAt(p, outlet))
+    .map((p) => computeProductMetrics(p, outlet, recipes.find((r) => r.productId === p.id), ingredients, overhead))
     .sort((a, b) => b.margin - a.margin);
 
   const exportCSV = async () => {
@@ -38,7 +38,7 @@ export default function ReportsScreen() {
       `"${m.product.nama}"`,
       `"${m.product.kategori}"`,
       Math.round(m.finalHpp),
-      m.product.hargaJual,
+      m.pricing.hargaJual,
       m.foodCost.toFixed(2),
       Math.round(m.profit),
       m.margin.toFixed(2),
@@ -129,7 +129,7 @@ export default function ReportsScreen() {
               </View>
               <View style={styles.metricGrid}>
                 <Mini label="HPP" value={formatIDR(m.finalHpp)} />
-                <Mini label="Harga Jual" value={formatIDR(m.product.hargaJual)} accent />
+                <Mini label="Harga Jual" value={formatIDR(m.pricing.hargaJual)} accent />
                 <Mini label="Food Cost" value={formatPct(m.foodCost)} />
                 <Mini label="Profit" value={formatIDR(m.profit)} />
                 <Mini label="Margin" value={formatPct(m.margin)} bold />

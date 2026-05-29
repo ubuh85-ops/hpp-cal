@@ -15,14 +15,19 @@ export type Ingredient = {
   outlet: Outlet;
 };
 
+export type ProductOutletPricing = {
+  available: boolean;
+  hargaJual: number;
+  targetFoodCost: number; // percent 0-100
+  targetMargin: number; // percent 0-100
+};
+
 export type Product = {
   id: string;
   nama: string;
   kategori: string;
-  outlet: Outlet;
-  hargaJual: number;
-  targetFoodCost: number; // percent 0-100
-  targetMargin: number; // percent 0-100
+  // Per-outlet pricing. A product is global; visibility & price differ per outlet.
+  prices: Partial<Record<Outlet, ProductOutletPricing>>;
   imageUrl?: string;
 };
 
@@ -44,6 +49,18 @@ export type Overhead = {
   internet: number;
   marketing: number;
   lain: number;
-  targetSalesPerMonth: number; // for per-product allocation
+  targetSalesPerMonth: number;
   outlet: Outlet;
 };
+
+export function defaultPricing(): ProductOutletPricing {
+  return { available: false, hargaJual: 0, targetFoodCost: 30, targetMargin: 70 };
+}
+
+export function getPricing(p: Product, outlet: Outlet): ProductOutletPricing {
+  return p.prices[outlet] || defaultPricing();
+}
+
+export function isAvailableAt(p: Product, outlet: Outlet): boolean {
+  return p.prices[outlet]?.available === true;
+}

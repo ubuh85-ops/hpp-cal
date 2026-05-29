@@ -7,7 +7,7 @@ import { Header } from "@/src/components/Header";
 import { Card, Field, Input, Row, Section } from "@/src/components/ui";
 import { COLORS, RADIUS, SPACE } from "@/src/theme";
 import { repo } from "@/src/data/repo";
-import { Ingredient, Outlet, Overhead, Product, Recipe } from "@/src/data/types";
+import { getPricing, Ingredient, isAvailableAt, Outlet, Overhead, Product, Recipe } from "@/src/data/types";
 import { computeProductMetrics, idealPriceByFoodCost, idealPriceByMargin, recipeHPP, overheadPerProduct } from "@/src/data/compute";
 import { formatIDR, formatPct, parseNumber, roundToNearest } from "@/src/data/format";
 
@@ -29,18 +29,19 @@ export default function SimulatorScreen() {
     const [p, i, r, oh] = await Promise.all([repo.listProducts(), repo.listIngredients(), repo.listRecipes(), repo.getOverhead(o)]);
     setProducts(p); setIngredients(i); setRecipes(r); setOverhead(oh);
     if (!selectedId) {
-      const first = p.find((x) => x.outlet === o);
+      const first = p.find((x) => isAvailableAt(x, o));
       if (first) {
         setSelectedId(first.id);
-        setTgtFc(String(first.targetFoodCost));
-        setTgtMg(String(first.targetMargin));
+        const pr = getPricing(first, o);
+        setTgtFc(String(pr.targetFoodCost));
+        setTgtMg(String(pr.targetMargin));
       }
     }
   }, [selectedId]);
 
   useFocusEffect(useCallback(() => { load(); }, [load]));
 
-  const outletProducts = products.filter((p) => p.outlet === outlet);
+  const outletProducts = products.filter((p) => isAvailableAt(p, outlet));
   const selected = useMemo(() => products.find((p) => p.id === selectedId) || null, [products, selectedId]);
   const recipe = useMemo(() => recipes.find((r) => r.productId === selectedId), [recipes, selectedId]);
   const hppBahan = recipeHPP(recipe, ingredients);
@@ -51,7 +52,7 @@ export default function SimulatorScreen() {
   const mg = parseNumber(tgtMg);
   const priceFromFc = roundToNearest(idealPriceByFoodCost(finalHpp, fc), roundStep);
   const priceFromMg = roundToNearest(idealPriceByMargin(finalHpp, mg), roundStep);
-  const currentMetrics = selected ? computeProductMetrics(selected, recipe, ingredients, overhead) : null;
+  const currentMetrics = selected ? computeProductMetrics(selected, outlet, recipe, ingredients, overhead) : null;
 
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
@@ -60,7 +61,7 @@ export default function SimulatorScreen() {
         <Section title="Pilih Produk">
           <TouchableOpacity testID="simulator-pick-product" style={styles.picker} onPress={() => setPickerOpen(true)} activeOpacity={0.8}>
             <View style={{ flex: 1 }}>
-              <Text style={styles.pickerLabel}>Produk</Text>
+              <Text style={styles.pickerLabel}>Produk ({outlet})</Text>
               <Text style={styles.pickerValue}>{selected?.nama || "— Pilih produk —"}</Text>
             </View>
             <Ionicons name="chevron-down" size={18} color={COLORS.textMuted} />
@@ -75,7 +76,7 @@ export default function SimulatorScreen() {
                 <Row label="Overhead per produk" value={formatIDR(oh)} />
                 <View style={styles.divider} />
                 <Row label="Total HPP" value={formatIDR(finalHpp)} bold accent />
-                <Row label="Harga Jual saat ini" value={formatIDR(selected.hargaJual)} />
+                <Row label={`Harga Jual (${outlet})`} value={formatIDR(currentMetrics.pricing.hargaJual)} />
                 <Row label="Food Cost" value={formatPct(currentMetrics.foodCost)} />
                 <Row label="Margin" value={formatPct(currentMetrics.margin)} bold />
               </Card>
@@ -126,15 +127,16 @@ export default function SimulatorScreen() {
       <Modal visible={pickerOpen} transparent animationType="fade" onRequestClose={() => setPickerOpen(false)}>
         <TouchableOpacity style={styles.backdrop} onPress={() => setPickerOpen(false)} activeOpacity={1}>
           <View style={styles.sheet}>
-            <Text style={styles.sheetTitle}>Pilih Produk</Text>
+            <Text style={styles.sheetTitle}>Pilih Produk ({outlet})</Text>
             <FlatList
               data={outletProducts}
               keyExtractor={(p) => p.id}
+              ListEmptyComponent={<Text style={{ color: COLORS.textMuted, textAlign: "center", paddingVertical: 20 }}>Belum ada produk untuk outlet ini.</Text>}
               renderItem={({ item }) => (
                 <TouchableOpacity
                   testID={`pick-product-${item.id}`}
                   style={styles.sheetItem}
-                  onPress={() => { setSelectedId(item.id); setTgtFc(String(item.targetFoodCost)); setTgtMg(String(item.targetMargin)); setPickerOpen(false); }}
+                  onPress={() => { setSelectedId(item.id); const pr = getPricing(item, outlet); setTgtFc(String(pr.targetFoodCost)); setTgtMg(String(pr.targetMargin)); setPickerOpen(false); }}
                 >
                   <Text style={styles.sheetItemText}>{item.nama}</Text>
                   {selectedId === item.id && <Ionicons name="checkmark" size={18} color={COLORS.primary} />}

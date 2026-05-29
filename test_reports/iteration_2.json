@@ -1,0 +1,38 @@
+{
+  "summary": "Frontend-only testing of per-outlet pricing feature (Product.prices map). 11 of 12 review-request features verified PASSING via UI tests. One reproducible bug found: Dashboard tab shows 'Total Produk: 0' and empty KPIs on initial page load (fresh navigation to /dashboard) even though localStorage already contains the seeded v2 data and Products/Reports/Simulator/Recipe tabs all load correctly on the same first visit. After navigating to any other tab and back to Dashboard, KPIs render correctly (7 products in FORU Huis, etc.). Root cause appears to be useFocusEffect not firing on initial mount when Dashboard is the entry route. Deprecated style props warnings detected (non-blocking).",
+  "backend_issues": { "critical": [], "minor": [] },
+  "frontend_issues": {
+    "ui_bugs": [
+      {
+        "component": "Dashboard (/app/frontend/app/(tabs)/dashboard.tsx)",
+        "issue": "On initial/first navigation to /dashboard, KPIs show Total Produk=0, Avg FC=0%, Avg Margin=0%, and 'Belum ada produk untuk outlet ini.' even though localStorage already has hpp.seeded.v2='1' and hpp.products populated. Navigating away to any other tab then back to Dashboard makes it render correctly (7 products for FORU Huis, Highest=Rice Bowl Chicken 60.9%, Lowest=Burger Camat 24.9%). Same useFocusEffect pattern works on products.tsx/simulator.tsx/reports.tsx loaded as initial route — only Dashboard fails. Likely fix: add a plain useEffect(() => { load(); }, [load]) alongside useFocusEffect, OR call load() inside an initial useEffect. Repro: open https://margin-master-95.preview.emergentagent.com/dashboard in a fresh tab → Total Produk 0.",
+        "testID": "kpi-products",
+        "priority": "HIGH"
+      }
+    ],
+    "integration_issues": [],
+    "design_issues": [],
+    "react_native_issues": [
+      {
+        "component": "Deprecated style props (multiple components)",
+        "issue": "Console warnings: '\"shadow*\" style props are deprecated. Use \"boxShadow\".' and 'props.pointerEvents is deprecated. Use style.pointerEvents'. Likely originating from shadow styles in /app/frontend/src/components/ui.tsx / theme.ts. Non-blocking but should be migrated."
+      }
+    ]
+  },
+  "test_report_links": [],
+  "action_items": [
+    "Fix Dashboard initial-mount bug: add useEffect(() => { load(); }, [load]) alongside useFocusEffect in /app/frontend/app/(tabs)/dashboard.tsx so KPIs render on first page load (not only after tab switching).",
+    "(Optional) Replace deprecated shadow* style props with boxShadow and props.pointerEvents with style.pointerEvents in shared UI components."
+  ],
+  "critical_code_review_comments": [
+    "Dashboard relies solely on useFocusEffect for initial data load — fragile when route is opened directly. Same issue could affect any tab if expo-router focus event timing changes; consider a useEffect+useFocusEffect dual pattern in all tab screens for robustness.",
+    "computeProductMetrics signature change to (product, outlet, recipe, ingredients, overhead) is consistent across consumers (dashboard, products, recipe, simulator, reports) — no stale call sites detected."
+  ],
+  "updated_files": [],
+  "success_rate": { "backend": "N/A (frontend-only)", "frontend": "92% (11/12 review items pass; 1 dashboard initial-load bug)" },
+  "seed_data_creation": "No seed data created; relied on built-in SEED v2 (hpp.seeded.v2). Reset Data button (reset-seed) verified and restores v2 correctly.",
+  "retest_needed": true,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Verified PASS: (1) v2 seed re-applies (localStorage shows hpp.seeded.v2='1'), Kopi Susu Aren shows in all 3 outlets with prices Huis Rp25.000 / Mozz Rp28.000 / Bazar Rp22.000 and pill '3 outlet'; Burger Camat in Huis Rp36.000 + Mozz Rp38.000 with pill '2 outlet', hidden in Bazar. (2) Products tab filter chips work ('Outlet ini' vs 'Semua produk'); 'Semua produk' in Bazar shows Burger Camat with 'Belum tersedia di FORU Bazar — tap untuk atur harga'. (3) Outlet switcher updates harga jual + HPP+margin live. (4) Product form /product/[id] for Kopi Aren shows 3 outlet cards (outlet-card-FORU Huis / outlet-card-FORU The Mozz / outlet-card-FORU Bazar), all 3 switches ON, prices 25000/28000/22000 prefilled. (5) /product/new with all outlets OFF triggers validation 'Aktifkan minimal 1 outlet'; after enabling FORU Huis + harga 20000, saving redirects to /recipe/<newId>. (6) Recipe /recipe/prod-kopi-aren header shows 'Ringkasan HPP (FORU Bazar)' when active outlet=Bazar, Harga Jual Rp 22.000, FC 66.5%, Margin 33.5%. (7) Simulator picker for FORU Bazar shows only Bazar-available products (no Burger Camat); selecting product prefills targetFC/targetMargin from outlet pricing; Harga Jual Ideal formula intact (Rp 45.500 for Kopi Aren Bazar at FC 32%). (8) Reports tab profitability table includes only outlet-available products with outlet-specific hargaJual; reset-seed button works. FAIL: Dashboard on fresh load shows 0 products until you navigate away and back. Reproduce by opening /dashboard directly in a new tab.",
+  "rca_of_issue": "Dashboard.tsx uses only useFocusEffect(useCallback(() => { load(); }, [load])). When Dashboard is the initial mounted route in expo-router (it is the (tabs) index), the focus event may fire before the screen is fully mounted/registered or not at all on first paint in the web preview, causing load() to never execute. Verified via page.evaluate that localStorage IS populated (hpp.products contains all 9 seed products) but `products` state stays []. After page.goto('/products') then page.goto('/dashboard'), the focus transition triggers useFocusEffect and KPIs hydrate correctly (Total Produk 7, Highest=Rice Bowl Chicken 60.9%, Lowest=Burger Camat 24.9%). Mitigation: add a plain useEffect(() => { load(); }, [load]) in Dashboard (and ideally other tab screens) so the first paint also triggers data load."
+}

@@ -1,4 +1,4 @@
-import { Ingredient, Overhead, Product, Recipe } from "./types";
+import { Ingredient, Outlet, Overhead, Product, ProductOutletPricing, Recipe } from "./types";
 
 // Ingredients
 export const SEED_INGREDIENTS: Ingredient[] = [
@@ -15,17 +15,52 @@ export const SEED_INGREDIENTS: Ingredient[] = [
   { id: "ing-sauce", nama: "Sauce", kategori: "Saus", supplier: "Heinz", satuanBeli: "liter", jumlahBeli: 1, hargaBeli: 35000, satuanPakai: "ml", nilaiKonversi: 1000, outlet: "FORU Huis" },
 ];
 
-// Products
+function priceMap(entries: [Outlet, number, number?, number?][]): Partial<Record<Outlet, ProductOutletPricing>> {
+  const out: Partial<Record<Outlet, ProductOutletPricing>> = {};
+  for (const [o, harga, tFc, tMg] of entries) {
+    out[o] = { available: true, hargaJual: harga, targetFoodCost: tFc ?? 30, targetMargin: tMg ?? 70 };
+  }
+  return out;
+}
+
+// Products — same product can exist across multiple outlets with different prices.
 export const SEED_PRODUCTS: Product[] = [
-  { id: "prod-kopi-aren", nama: "Kopi Susu Aren", kategori: "Coffee", outlet: "FORU Huis", hargaJual: 25000, targetFoodCost: 30, targetMargin: 70 },
-  { id: "prod-foru-sig", nama: "FORU Signature", kategori: "Coffee", outlet: "FORU Huis", hargaJual: 32000, targetFoodCost: 28, targetMargin: 72 },
-  { id: "prod-matcha", nama: "Matcha Latte", kategori: "Tea", outlet: "FORU Huis", hargaJual: 30000, targetFoodCost: 32, targetMargin: 68 },
-  { id: "prod-royal-choco", nama: "Royal Chocolate", kategori: "Chocolate", outlet: "FORU Huis", hargaJual: 28000, targetFoodCost: 30, targetMargin: 70 },
-  { id: "prod-burger-camat", nama: "Burger Camat", kategori: "Burger", outlet: "FORU The Mozz", hargaJual: 38000, targetFoodCost: 35, targetMargin: 65 },
-  { id: "prod-burger-bupati", nama: "Burger Bupati", kategori: "Burger", outlet: "FORU The Mozz", hargaJual: 48000, targetFoodCost: 35, targetMargin: 65 },
-  { id: "prod-burger-presiden", nama: "Burger Presiden", kategori: "Burger", outlet: "FORU The Mozz", hargaJual: 65000, targetFoodCost: 38, targetMargin: 62 },
-  { id: "prod-rice-bowl", nama: "Rice Bowl Chicken", kategori: "Rice Bowl", outlet: "FORU Bazar", hargaJual: 35000, targetFoodCost: 35, targetMargin: 65 },
-  { id: "prod-nasgor", nama: "Nasi Goreng", kategori: "Rice Bowl", outlet: "FORU Bazar", hargaJual: 28000, targetFoodCost: 33, targetMargin: 67 },
+  { id: "prod-kopi-aren", nama: "Kopi Susu Aren", kategori: "Coffee", prices: priceMap([
+    ["FORU Huis", 25000, 30, 70],
+    ["FORU The Mozz", 28000, 30, 70],
+    ["FORU Bazar", 22000, 32, 68],
+  ])},
+  { id: "prod-foru-sig", nama: "FORU Signature", kategori: "Coffee", prices: priceMap([
+    ["FORU Huis", 32000, 28, 72],
+    ["FORU The Mozz", 35000, 28, 72],
+  ])},
+  { id: "prod-matcha", nama: "Matcha Latte", kategori: "Tea", prices: priceMap([
+    ["FORU Huis", 30000, 32, 68],
+    ["FORU The Mozz", 33000, 32, 68],
+    ["FORU Bazar", 28000, 34, 66],
+  ])},
+  { id: "prod-royal-choco", nama: "Royal Chocolate", kategori: "Chocolate", prices: priceMap([
+    ["FORU Huis", 28000, 30, 70],
+    ["FORU The Mozz", 30000, 30, 70],
+  ])},
+  { id: "prod-burger-camat", nama: "Burger Camat", kategori: "Burger", prices: priceMap([
+    ["FORU The Mozz", 38000, 35, 65],
+    ["FORU Huis", 36000, 35, 65],
+  ])},
+  { id: "prod-burger-bupati", nama: "Burger Bupati", kategori: "Burger", prices: priceMap([
+    ["FORU The Mozz", 48000, 35, 65],
+  ])},
+  { id: "prod-burger-presiden", nama: "Burger Presiden", kategori: "Burger", prices: priceMap([
+    ["FORU The Mozz", 65000, 38, 62],
+  ])},
+  { id: "prod-rice-bowl", nama: "Rice Bowl Chicken", kategori: "Rice Bowl", prices: priceMap([
+    ["FORU Bazar", 35000, 35, 65],
+    ["FORU Huis", 38000, 35, 65],
+  ])},
+  { id: "prod-nasgor", nama: "Nasi Goreng", kategori: "Rice Bowl", prices: priceMap([
+    ["FORU Bazar", 28000, 33, 67],
+    ["FORU Huis", 30000, 33, 67],
+  ])},
 ];
 
 export const SEED_RECIPES: Recipe[] = [
