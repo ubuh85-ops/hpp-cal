@@ -1,0 +1,31 @@
+{
+  "summary": "Frontend-only smoke + functional test of F&B HPP/COGS Expo app at mobile viewport (390x844). Verified app loads at root, redirects to Dashboard, seeded KPIs render (4 products / 11 ingredients / 58.7% avg FC / 41.3% avg margin), highest/lowest margin cards render, all 6 bottom tabs navigate, outlet switcher opens sheet with 3 outlets, per-outlet scoping filters correctly on Products tab (Burger Camat/Bupati/Presiden under FORU The Mozz, Nasi Goreng + Rice Bowl under FORU Bazar, none of those under other outlets), Bahan list shows seeded ingredients for active outlet, Ingredient CRUD works (FAB->form, validation messages 'Wajib diisi' / 'Harus > 0', cost-per-unit preview Rp 20 correct for 20000/(1*1000), save adds row), Product CRUD navigates to Recipe Builder after save, Recipe Builder opens Kopi Susu Aren, lists 4 lines, qty editable, save persists and HPP delta matches formula (15.830 -> 16.270 = +2*220 for qty 18->20), Simulator math verified for Kopi Aren (HPP 15.830 -> FC30% ideal Rp 53.000, MG70% ideal Rp 53.000, FC25% ideal 63320 rounded to Rp500=63.500 and Rp1000=63.000), Overhead screen edit-and-save works (target 3000->5000 dropped Avg FC from 58.7% to 47.4% on Dashboard, confirming alokasi recompute), Reports tab shows full profitability table with HPP/Harga Jual/FC%/Profit/Margin/Harga Ideal and correctly colored status badges (Royal Choco 48.6% Cukup/yellow, Kopi Aren 36.7% Rendah/red, Matcha 32% Rendah/red). Export buttons (export-report, export-ingredients) clicked without crash (web share fallback path). One critical bug: import-ingredients throws uncaught 'User denied permission to access clipboard' on web preview, surfacing the Expo error overlay and blocking subsequent interaction.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "reports.tsx importIngredientsCSV", "issue": "Clipboard.getStringAsync() at line 71 is not wrapped in try/catch. When the browser denies clipboard permission (common on web/preview), the promise rejects and Expo shows the red 'Uncaught Error: User denied permission to access clipboard' overlay, blocking the rest of the UI until dismissed.", "testID": "import-ingredients", "priority": "HIGH"}
+    ],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "global", "issues": ["Console warns: 'shadow*' style props are deprecated (use boxShadow) and 'props.pointerEvents is deprecated (use style.pointerEvents)'. Non-blocking but should be cleaned up before RN 0.75+ upgrade."]}
+    ],
+    "react_native_issues": []
+  },
+  "test_report_links": ["/app/test_reports/iteration_1.json"],
+  "action_items": [
+    "Wrap Clipboard.getStringAsync() in /app/frontend/app/(tabs)/reports.tsx::importIngredientsCSV (line 71) inside a try/catch. On catch, show Alert 'Tidak bisa membaca clipboard. Berikan izin clipboard atau paste manual.' instead of letting the promise reject.",
+    "Optional: migrate 'shadow*' style props to boxShadow and pointerEvents prop to style.pointerEvents to silence RN web deprecation warnings."
+  ],
+  "critical_code_review_comments": [
+    "compute.ts formulas (costPerUnit, recipeHPP, foodCostPct, marginPct, idealPriceByFoodCost, idealPriceByMargin, overheadPerProduct, marginStatus) are correct and match the spec in the problem statement; verified end-to-end against rendered values.",
+    "Per-outlet filter on Products/Bahan is driven by repo.getActiveOutlet() + useFocusEffect — switching outlet from one tab does carry over to other tabs on focus, which is the right behavior.",
+    "Reports importIngredientsCSV does not guard the async clipboard call; should follow same try/catch pattern used in exportIngredientsCSV's Share.share->Clipboard fallback."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A", "frontend": "~92%"},
+  "seed_data_creation": "No persistent seed created. AsyncStorage on Expo Web is per-browser-context; each browser_automation run started clean and exercised the default seed. One transient TEST_Susu Cair ingredient was created within a single run to validate Ingredient CRUD, but not relied on across runs.",
+  "retest_needed": true,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Use [role=\"tab\"] indexed selectors (0=Dashboard,1=Bahan,2=Produk,3=Resep,4=Simulasi,5=Laporan) for bottom-tab navigation. Do NOT use text=Produk because the dashboard body contains 'Produk' as part of 'Food Cost per Produk' / 'Margin per Produk' / 'Total Produk' and Playwright matches the first occurrence. All other interactive elements use stable data-testid attributes as listed in the problem statement. Status badge wording maps margin>=60 'Sehat' (green), 40-60 'Cukup' (yellow), <40 'Rendah' (red).",
+  "rca_of_issue": "Bug: import-ingredients red-screen. Repro: open https://margin-master-95.preview.emergentagent.com -> Laporan tab -> tap 'Import Bahan' without granting clipboard permission. Expected: Indonesian alert telling user to copy CSV first. Actual: Expo error overlay 'User denied permission to access clipboard'. Root cause: app/(tabs)/reports.tsx:71 awaits Clipboard.getStringAsync() with no try/catch; on web browsers the Clipboard API rejects (not resolves with empty string) when the document lacks clipboard-read permission. Fix: wrap call in try/catch, on catch show Alert.alert('Clipboard tidak tersedia', 'Izinkan akses clipboard di browser, atau gunakan share/export terlebih dahulu.') and return early."
+}
