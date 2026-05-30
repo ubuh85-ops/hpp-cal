@@ -1,13 +1,14 @@
 import { storage } from "@/src/utils/storage";
-import { Ingredient, Outlet, Overhead, Product, Recipe } from "./types";
-import { SEED_INGREDIENTS, SEED_PRODUCTS, SEED_RECIPES, SEED_OVERHEADS } from "./seed";
+import { BazarEvent, Ingredient, Outlet, Overhead, Product, Recipe } from "./types";
+import { SEED_INGREDIENTS, SEED_PRODUCTS, SEED_RECIPES, SEED_OVERHEADS, SEED_BAZAR } from "./seed";
 
 const K_ING = "hpp.ingredients";
 const K_PROD = "hpp.products";
 const K_REC = "hpp.recipes";
 const K_OH = "hpp.overheads";
 const K_OUTLET = "hpp.activeOutlet";
-const K_SEEDED = "hpp.seeded.v2";
+const K_BAZAR = "hpp.bazarEvents";
+const K_SEEDED = "hpp.seeded.v4";
 
 async function readJSON<T>(key: string, fallback: T): Promise<T> {
   const raw = (await storage.getItem(key, "")) as string | null;
@@ -31,6 +32,7 @@ export const repo = {
     await writeJSON(K_PROD, SEED_PRODUCTS);
     await writeJSON(K_REC, SEED_RECIPES);
     await writeJSON(K_OH, SEED_OVERHEADS);
+    await writeJSON(K_BAZAR, SEED_BAZAR);
     await storage.setItem(K_SEEDED, "1");
   },
 
@@ -39,6 +41,7 @@ export const repo = {
     await writeJSON(K_PROD, SEED_PRODUCTS);
     await writeJSON(K_REC, SEED_RECIPES);
     await writeJSON(K_OH, SEED_OVERHEADS);
+    await writeJSON(K_BAZAR, SEED_BAZAR);
     await storage.setItem(K_SEEDED, "1");
   },
 
@@ -114,6 +117,26 @@ export const repo = {
     if (idx >= 0) all[idx] = oh;
     else all.push(oh);
     await writeJSON(K_OH, all);
+  },
+
+  // Bazar Events
+  async listEvents(): Promise<BazarEvent[]> {
+    return readJSON<BazarEvent[]>(K_BAZAR, []);
+  },
+  async getEvent(id: string): Promise<BazarEvent | undefined> {
+    const all = await this.listEvents();
+    return all.find((e) => e.id === id);
+  },
+  async saveEvent(e: BazarEvent) {
+    const all = await this.listEvents();
+    const idx = all.findIndex((x) => x.id === e.id);
+    if (idx >= 0) all[idx] = e;
+    else all.push(e);
+    await writeJSON(K_BAZAR, all);
+  },
+  async deleteEvent(id: string) {
+    const all = await this.listEvents();
+    await writeJSON(K_BAZAR, all.filter((e) => e.id !== id));
   },
 };
 

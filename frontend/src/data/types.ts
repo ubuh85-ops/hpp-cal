@@ -53,6 +53,52 @@ export type Overhead = {
   outlet: Outlet;
 };
 
+export type BazarCosts = {
+  sewa: number;
+  deposit: number;
+  listrik: number;
+  transportasi: number;
+  parkir: number;
+  gajiStaff: number;
+  freelancer: number;
+  promosi: number;
+  dekorasi: number;
+  banner: number;
+  perlengkapan: number;
+  lainnya: number;
+};
+
+export type BazarScenarioInput = { txPerDay: number; avgSpending: number };
+
+export type BazarProductMixItem = { productId: string; qty: number };
+
+export type BazarEvent = {
+  id: string;
+  nama: string;
+  lokasi: string;
+  tanggal: string; // ISO yyyy-mm-dd
+  durasiHari: number;
+  targetPengunjung: number;
+  jamOperasional: string;
+  outlet: Outlet; // which outlet's pricing to use
+  costs: BazarCosts;
+  scenarios: {
+    low: BazarScenarioInput;
+    medium: BazarScenarioInput;
+    high: BazarScenarioInput;
+  };
+  productMix: BazarProductMixItem[];
+  targetProfit: number;
+  conversionRates: { conservative: number; normal: number; aggressive: number };
+  status: "planning" | "completed";
+  actualRevenue?: number;
+  actualCost?: number;
+};
+
+export function defaultBazarCosts(): BazarCosts {
+  return { sewa: 0, deposit: 0, listrik: 0, transportasi: 0, parkir: 0, gajiStaff: 0, freelancer: 0, promosi: 0, dekorasi: 0, banner: 0, perlengkapan: 0, lainnya: 0 };
+}
+
 export function defaultPricing(): ProductOutletPricing {
   return { available: false, hargaJual: 0, targetFoodCost: 30, targetMargin: 70 };
 }

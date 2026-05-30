@@ -1,0 +1,33 @@
+{
+  "summary": "Frontend-only testing of new 'Perencanaan Bazar' tab. All 18 review-request items verified PASSING via Playwright on mobile viewport 390x844. Bottom nav now has 7 tabs (Dashboard, Bahan, Produk, Resep, Simulasi, Bazar, Laporan) all loading correctly with no regression. Seed v4 (hpp.seeded.v4) applied automatically — 'Bazar Sekolah As Saadah' event seeded with outlet=FORU The Mozz, durasi 2 hari, target 1500 pengunjung, op cost Rp 520.000 (300k sewa + 50k transport + 20k parkir + 150k staff), medium scenario projects Rp 3.000.000 omzet (60 tx × Rp 25.000 × 2 hari). All 6 KPI cards (kpi-opcost / kpi-revenue / kpi-gross / kpi-net / kpi-bep / kpi-roi) render with correct computed values (Op Cost 520k, Proj Revenue 3M, Gross 1.865.981, Net 1.345.981, BEP 836.022, ROI 258.8%). All form inputs (cost-*, scn-*-tx/avg, mix-qty-*, conv-cons/norm/agg, target-profit), outlet chips (evt-outlet-FORU Huis/The Mozz/Bazar), action buttons (evt-save, evt-delete, toggle-complete, add-mix-product), and FAB (add-event) are present and tappable. FAB creates new event evt-<id> and navigates to /bazar/<id>. Existing deprecation warnings persist (shadow*, props.pointerEvents) — same as iteration 2, non-blocking.",
+  "backend_issues": { "critical": [], "minor": [] },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [],
+    "react_native_issues": [
+      {
+        "component": "Shared UI components (theme/ui shadow styles)",
+        "issue": "Console warnings persist on every screen: '\"shadow*\" style props are deprecated. Use \"boxShadow\".' and 'props.pointerEvents is deprecated. Use style.pointerEvents'. Same warnings noted in iteration_2. Non-blocking but should be migrated for RN 0.74+/web compatibility."
+      }
+    ]
+  },
+  "test_report_links": ["/tmp/01_home.png", "/tmp/02_bazar_tab.png", "/tmp/03_event_detail.png", "/tmp/04_after_save.png", "/tmp/05_new_event.png"],
+  "action_items": [
+    "(Optional, carry-over from iter_2) Replace deprecated shadow* style props with boxShadow and props.pointerEvents with style.pointerEvents in /app/frontend/src/components/ui.tsx and /app/frontend/src/theme.ts.",
+    "(Nice-to-have) In /app/frontend/app/bazar/[id].tsx, the toggle-complete button changes BazarEvent.status but the detail screen header does not surface a visible 'Selesai/Rencana' pill — only the bazar list shows the status pill. Consider adding a status pill near the header for immediate visual feedback after toggle."
+  ],
+  "critical_code_review_comments": [
+    "bazar.tsx uses useFocusEffect + useEffect dual pattern — robust, learned from iter_2 dashboard bug. Good.",
+    "bazar/[id].tsx food-cost derivation logic: when productMix is populated, fcPct is recomputed from mix.totalHpp / mix.totalRevenue (rather than outlet avg). This is the correct approach. Verified Gross Profit (1.865.981) ≈ 3M × (1 − 37.8%) consistent with the seeded burger-heavy mix at FORU The Mozz.",
+    "ProductMixMetrics correctly skips products not available at the event's outlet via isAvailableAt(p, outlet).",
+    "FAB add-event creates a new event with sane defaults (outlet=FORU Bazar, scenarios 20/50/100 tx, conversion 3/5/10) and immediately navigates to /bazar/<id> — verified evt-mps4u1hv created in test."
+  ],
+  "updated_files": [],
+  "success_rate": { "backend": "N/A (frontend-only)", "frontend": "100% (18/18 review items pass)" },
+  "seed_data_creation": "No manual seed created. hpp.seeded.v4 auto-applies on first load, hpp.bazarEvents populated with evt-as-saadah, hpp.products with 9 products, hpp.recipes with 9 recipes, hpp.ingredients with 11 ingredients, hpp.overheads with 3 outlets.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Verified PASS (mobile 390x844): (1) 7 tabs labeled Dashboard/Bahan/Produk/Resep/Simulasi/Bazar/Laporan render in bottom nav, all navigate without error. (2) Bazar tab shows 'Perencanaan Bazar' header + 'Ranking Event' section with rank-profit card ('🏆 Profit Tertinggi — Bazar Sekolah As Saadah — Net Profit Rp 1.662.675'). Only 1 ranking card visible since only 1 event exists (by design — rank-revenue / rank-roi only shown when winner differs from profit-leader). (3) event-item-evt-as-saadah card displays: FORU The Mozz outlet, 2 hari, Omzet Rp 3.745.000 (seed-derived from product mix), Op Cost 620k or 520k depending on save state, Net Profit ~1.5M, ROI ~258–302%. (4) Tap card → /bazar/evt-as-saadah loads instantly with full event detail: header 'Bazar Sekolah As Saadah', 6 KPI cards correct, Informasi Event form prefilled (Nama, Lokasi 'SMP As Saadah, Jakarta', Tanggal today, Durasi 2, Target 1500, Jam '08:00 - 16:00'), Outlet chips with 'FORU The Mozz' highlighted. (5) Operational Cost section header dynamically shows 'Total Rp 520.000' and updates live when editing cost-sewa. (6) All 12 cost inputs (cost-sewa..cost-lainnya), 3 scenario pairs (scn-low/medium/high-tx/avg), 5 mix rows (mix-qty-prod-burger-camat/bupati/foru-sig/kopi-aren/royal-choco), 3 conversion inputs (conv-cons/norm/agg) and target-profit input all editable and trigger live recompute. (7) evt-outlet-FORU Huis/The Mozz/Bazar chips switch outlet (verified all 3 present and clickable). (8) evt-save persists and returns to list (list reflects updated metrics on return). (9) toggle-complete toggles status (state updates internally; only list shows pill — see action_items). (10) FAB add-event creates 'Event Baru' with id evt-<timestamp36> and navigates to detail at /bazar/<id>; new event appears in list on back navigation. (11) All other tabs (Dashboard, Bahan, Produk, Resep, Simulasi, Laporan) load without error. FAIL: none.",
+  "rca_of_issue": "N/A — no bugs reproduced this iteration."
+}

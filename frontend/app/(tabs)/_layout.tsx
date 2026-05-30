@@ -20,6 +20,7 @@ const ICONS = {
   products: makeIcon("cafe"),
   recipes: makeIcon("restaurant"),
   simulator: makeIcon("calculator"),
+  bazar: makeIcon("storefront"),
   reports: makeIcon("document-text"),
 };
 
@@ -43,6 +44,7 @@ export default function TabsLayout() {
       <Tabs.Screen name="products" options={{ title: "Produk", tabBarIcon: ICONS.products }} />
       <Tabs.Screen name="recipes" options={{ title: "Resep", tabBarIcon: ICONS.recipes }} />
       <Tabs.Screen name="simulator" options={{ title: "Simulasi", tabBarIcon: ICONS.simulator }} />
+      <Tabs.Screen name="bazar" options={{ title: "Bazar", tabBarIcon: ICONS.bazar }} />
       <Tabs.Screen name="reports" options={{ title: "Laporan", tabBarIcon: ICONS.reports }} />
     </Tabs>
   );

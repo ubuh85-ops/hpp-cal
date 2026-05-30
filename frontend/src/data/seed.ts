@@ -1,4 +1,4 @@
-import { Ingredient, Outlet, Overhead, Product, ProductOutletPricing, Recipe } from "./types";
+import { BazarEvent, Ingredient, Outlet, Overhead, Product, ProductOutletPricing, Recipe, defaultBazarCosts } from "./types";
 
 // Ingredients
 export const SEED_INGREDIENTS: Ingredient[] = [
@@ -118,4 +118,33 @@ export const SEED_OVERHEADS: Overhead[] = [
   { outlet: "FORU Huis", sewa: 8000000, gaji: 12000000, listrik: 1500000, air: 400000, internet: 600000, marketing: 1000000, lain: 500000, targetSalesPerMonth: 3000 },
   { outlet: "FORU The Mozz", sewa: 10000000, gaji: 15000000, listrik: 2000000, air: 500000, internet: 600000, marketing: 1500000, lain: 800000, targetSalesPerMonth: 4000 },
   { outlet: "FORU Bazar", sewa: 6000000, gaji: 8000000, listrik: 1000000, air: 300000, internet: 500000, marketing: 800000, lain: 400000, targetSalesPerMonth: 2500 },
+];
+
+export const SEED_BAZAR: BazarEvent[] = [
+  {
+    id: "evt-as-saadah",
+    nama: "Bazar Sekolah As Saadah",
+    lokasi: "SMP As Saadah, Jakarta",
+    tanggal: new Date().toISOString().slice(0, 10),
+    durasiHari: 2,
+    targetPengunjung: 1500,
+    jamOperasional: "08:00 - 16:00",
+    outlet: "FORU The Mozz",
+    costs: { ...defaultBazarCosts(), sewa: 300000, transportasi: 50000, parkir: 20000, gajiStaff: 150000 },
+    scenarios: {
+      low: { txPerDay: 30, avgSpending: 20000 },
+      medium: { txPerDay: 60, avgSpending: 25000 },
+      high: { txPerDay: 100, avgSpending: 30000 },
+    },
+    productMix: [
+      { productId: "prod-burger-camat", qty: 20 },
+      { productId: "prod-burger-bupati", qty: 15 },
+      { productId: "prod-foru-sig", qty: 25 },
+      { productId: "prod-kopi-aren", qty: 20 },
+      { productId: "prod-royal-choco", qty: 15 },
+    ],
+    targetProfit: 3000000,
+    conversionRates: { conservative: 3, normal: 5, aggressive: 10 },
+    status: "planning",
+  },
 ];
